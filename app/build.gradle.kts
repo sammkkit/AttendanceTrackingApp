@@ -58,6 +58,10 @@ dependencies {
 //    implementation("com.mapbox.maps:android:11.5.0")
 //    implementation("com.mapbox.extension:maps-compose:11.5.0")
 
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.36.0")
+
+
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database-ktx:21.0.0")
