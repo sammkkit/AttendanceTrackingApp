@@ -1,5 +1,6 @@
 package com.example.attendencetrackingapp.Presentation.Screens
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ fun Splash(navController: NavHostController) {
 
         if (FirebaseAuth.getInstance().currentUser != null) {
             navController.navigate(Routes.MapScreen.route) {
+                Log.d("start","hi")
                 popUpTo(navController.graph.startDestinationId)
                 launchSingleTop = true
             }

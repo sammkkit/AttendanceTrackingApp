@@ -2,6 +2,7 @@ package com.example.attendencetrackingapp.ViewModels
 
 import android.content.Context
 import android.location.Location
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.attendencetrackingapp.LocationService.LocationProvider
@@ -23,7 +24,7 @@ class LocationViewModel @Inject constructor():ViewModel() {
     }
 
     fun getLastLocation(onLocationResult: (Location?) -> Unit) {
-        viewModelScope.launch(Dispatchers.Main){
+        viewModelScope.launch{
             locationProvider?.getLastLocation()?.addOnSuccessListener { location ->
                 onLocationResult(location)
             }?.addOnFailureListener {

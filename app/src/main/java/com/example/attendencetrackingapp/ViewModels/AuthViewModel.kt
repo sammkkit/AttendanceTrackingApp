@@ -1,8 +1,16 @@
 package com.example.attendencetrackingapp.ViewModels
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequest
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
@@ -10,10 +18,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class AuthViewModel @Inject constructor() : ViewModel() {
+class AuthViewModel @Inject constructor(
+    //TODO("try to inject work manager (error is we cant inject viewmodel of workmanager into aauth viewmodel)")
+): ViewModel() {
     val auth =FirebaseAuth.getInstance()
 
     private val db = FirebaseDatabase.getInstance()
@@ -34,6 +45,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
             .addOnCompleteListener {
                 if (it.isSuccessful) {
                     _firebaseUser.value = auth.currentUser
+
                 } else {
                     _Error.value = it.exception!!.message
                     Toast.makeText(context, _Error.value, Toast.LENGTH_SHORT).show()
@@ -78,6 +90,7 @@ class AuthViewModel @Inject constructor() : ViewModel() {
                 }
             }
     }
+
     fun logout() {
         auth.signOut()
         _firebaseUser.value = null

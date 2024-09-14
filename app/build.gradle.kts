@@ -75,12 +75,15 @@ dependencies {
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.48")
+    implementation(libs.androidx.hilt.common)
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // If using Jetpack Compose
     implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    implementation("androidx.hilt:hilt-work:1.0.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
     implementation("com.google.firebase:firebase-analytics")
@@ -91,6 +94,9 @@ dependencies {
 
     //coil
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    //worker
+    implementation("androidx.work:work-runtime-ktx:2.8.1")
 
     implementation("androidx.compose.runtime:runtime:1.6.8")
     implementation("androidx.compose.runtime:runtime-livedata:1.6.8")
