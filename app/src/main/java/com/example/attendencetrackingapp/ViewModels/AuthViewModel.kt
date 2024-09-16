@@ -36,6 +36,27 @@ class AuthViewModel @Inject constructor(
     private val _Error = MutableStateFlow<String?>(null)
     val Error: StateFlow<String?> = _Error.asStateFlow()
 
+    private val _name = MutableStateFlow("")
+    val name: StateFlow<String> = _name.asStateFlow()
+
+    private val _email = MutableStateFlow("")
+    val email: StateFlow<String> = _email.asStateFlow()
+
+    private val _password = MutableStateFlow("")
+    val password: StateFlow<String> = _password.asStateFlow()
+
+    fun updateName(name: String) {
+        _name.value = name
+    }
+
+    fun updateEmail(email: String) {
+        _email.value = email
+    }
+
+    fun updatePassword(password: String) {
+        _password.value = password
+    }
+
     init {
         _firebaseUser.value = auth.currentUser
     }
@@ -52,13 +73,15 @@ class AuthViewModel @Inject constructor(
                 }
             }
     }
-    private fun SaveUserData(user: FirebaseUser,name: String){
+    private fun SaveUserData(user: FirebaseUser,name: String,officeLat:Double,officeLong:Double){
         user?.let {
             val userId = user.uid
             val userEmail = user.email
             val userMap = mapOf(
                 "email" to userEmail,
-                "name" to name
+                "name" to name,
+                "officeLatitude" to officeLat,
+                "officeLongitude" to officeLong
             )
 
             // Save user details under their UID
@@ -70,7 +93,14 @@ class AuthViewModel @Inject constructor(
                 }
         }
     }
-    fun signUp(name:String,email:String,password: String,context: Context){
+    fun signUp(
+        name:String,
+        email:String,
+        password: String,
+        context: Context,
+        officeLat:Double,
+        officeLong:Double
+    ){
         if (password.length < 6) {
             _Error.value = "Password should be at least 6 characters long."
             Toast.makeText(context, _Error.value, Toast.LENGTH_SHORT).show()
@@ -82,7 +112,7 @@ class AuthViewModel @Inject constructor(
                     val user = auth.currentUser
                     user?.let{
                         _firebaseUser.value = it
-                        SaveUserData(it,name)
+                        SaveUserData(it,name,officeLat,officeLong)
                     }
                 } else {
                     _Error.value = it.exception?.message

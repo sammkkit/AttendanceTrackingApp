@@ -57,6 +57,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 //    implementation("com.mapbox.maps:android:11.5.0")
 //    implementation("com.mapbox.extension:maps-compose:11.5.0")
+    implementation("com.google.maps.android:maps-compose:6.1.0")
 
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.google.accompanist:accompanist-permissions:0.36.0")

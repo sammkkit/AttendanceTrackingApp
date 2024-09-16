@@ -364,7 +364,7 @@ fun LoginScreen(
                 color = Color(0xFF917AFD),
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable {
-                    navController.navigate(Routes.Signup.route) { }
+                    navController.navigate("${Routes.Signup.route}") { }
                 }
             )
         }

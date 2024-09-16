@@ -27,16 +27,18 @@ class LocationWork(
 
     private val locationProvider = LocationProvider(applicationContext)
     private val database = FirebaseDatabase.getInstance()
-    private val locationRef = database.getReference("locations")
-    val officeLat = 23.2305621
-    val officeLong = 77.3883321
     val firebaseUser = FirebaseAuth.getInstance().currentUser
     val userId = firebaseUser!!.uid
+    private val userRef = database.getReference("Users")
+
+
 
     override suspend fun doWork(): Result {
         Log.d("LocationWork", "Worker started")
         return try {
 //            ensureDateNodeExists(userId)
+            //office location
+            val (officeLat, officeLong) = fetchOfficeCoordinates(userId) ?: Pair(23.2136, 77.3997)
             // Fetch last location
             val location = withContext(Dispatchers.IO) {
                 locationProvider.getLastLocation().await()
@@ -44,7 +46,10 @@ class LocationWork(
             location?.let {
                 // Save location to Firebase
                 val distance = calculateDistance(it.latitude, it.longitude, officeLat, officeLong)
-                Log.d("LocationWork", "111Location fetched: Lat: ${it.latitude}, Long: ${it.longitude}")
+                Log.d(
+                    "LocationWork",
+                    "Location fetched: Lat: ${it.latitude}, Long: ${it.longitude}"
+                )
                 if (distance < 200) {
                     punchInUser(userId, it.latitude, it.longitude)
                 } else {
@@ -52,7 +57,7 @@ class LocationWork(
                 }
 
 //                saveLocationToFirebase(it)
-            }?: run {
+            } ?: run {
                 Log.d("LocationWork", "Location is null, returning failure")
                 return Result.failure()
             }
@@ -63,6 +68,23 @@ class LocationWork(
             // Log error or handle exception
             Log.d("LocationWork", "${e.message}")
             Result.failure()
+        }
+    }
+
+    private suspend fun fetchOfficeCoordinates(userId: String): Pair<Double, Double>? {
+        return try {
+            val userSnapshot = userRef.child(userId).get().await()
+            if (userSnapshot.exists()) {
+                val officeLat = userSnapshot.child("officeLatitude").getValue(Double::class.java) ?: 0.0
+                val officeLong = userSnapshot.child("officeLongitude").getValue(Double::class.java) ?: 0.0
+                Pair(officeLat, officeLong)
+            } else {
+                Log.e("LocationWork", "User data does not exist")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("LocationWork", "Error fetching user data: ${e.message}")
+            null
         }
     }
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
@@ -77,28 +99,14 @@ class LocationWork(
 
         return R * c // Distance in meters
     }
-    private suspend fun saveLocationToFirebase(location: Location) {
-        val userId = "someUserId" // Replace with actual user ID retrieval
 
-        val locationData = mapOf(
-            "latitude" to location.latitude,
-            "longitude" to location.longitude
-        )
-
-        try {
-            locationRef.child(userId).push().setValue(locationData).await()
-            Log.d("LocationWork", "Location saved to Firebase")
-        } catch (e: Exception) {
-            // Handle exception (e.g., log error)
-            Log.d("LocationWork", "Error saving location to Firebase: ${e.message}")
-
-        }
-    }
     private suspend fun punchInUser(userId: String, currentLat: Double, currentLong: Double) {
-        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
+        val attendanceRef =
+            database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
 
         // Get the last punch entry
-        val lastPunchSnapshot = attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()
+        val lastPunchSnapshot =
+            attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()
 
         // Check if there's already a punch-in without a corresponding punch-out
         if (lastPunchSnapshot != null) {
@@ -124,22 +132,12 @@ class LocationWork(
             }
         }
     }
-//    private suspend fun ensureDateNodeExists(userId: String) {
-//        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance")
-//        val currentDate = getCurrentDate()
-//
-//        val dateSnapshot = attendanceRef.child(currentDate).get().await()
-//        if (!dateSnapshot.exists()) {
-//            // Node doesn't exist, create a new entry for the day
-//            val initialData = mapOf("date" to currentDate, "Punches" to "")
-//            attendanceRef.child(currentDate).setValue(initialData).await()
-//            Log.d("LocationWork", "New date node created for $currentDate")
-//        }
-//    }
 
     private suspend fun punchOutUser(userId: String, currentLat: Double, currentLong: Double) {
-        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
-        val lastPunchKey = attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()?.key
+        val attendanceRef =
+            database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
+        val lastPunchKey =
+            attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()?.key
 
         lastPunchKey?.let {
             val punchOutTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
@@ -153,6 +151,7 @@ class LocationWork(
             }
         }
     }
+
 
     private fun getCurrentDate(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
