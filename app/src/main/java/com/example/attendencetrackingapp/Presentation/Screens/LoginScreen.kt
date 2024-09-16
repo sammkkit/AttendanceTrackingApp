@@ -1,6 +1,7 @@
 package com.example.attendencetrackingapp.Presentation.Screens
 
 
+import android.Manifest
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -60,8 +61,11 @@ import androidx.navigation.compose.rememberNavController
 import com.example.attendencetrackingapp.Presentation.Navigation.Routes
 import com.example.attendencetrackingapp.ViewModels.AuthViewModel
 
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun LoginScreen(
     navController: NavHostController
@@ -73,7 +77,12 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
 
-
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = listOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        )
+    )
     val firebaseUser by authViewModel.firebaseUser.collectAsState(initial = null)
     LaunchedEffect(firebaseUser){
         if(firebaseUser!=null){
@@ -108,7 +117,7 @@ fun LoginScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = "Sign up to your Nest account to explore your place to live!!",
+                text = "Sign up to your GeoLog account to ease your attendance tracking!!",
                 color = Color(0xFF7D7F88)
             )
         }
@@ -223,39 +232,90 @@ fun LoginScreen(
         }
 
         // Login Button
-        Button(
-            onClick = {
-                if(email.isEmpty() || password.isEmpty()){
-                    Toast.makeText(context,"Enter All fields", Toast.LENGTH_SHORT).show()
-                }else{
-                    authViewModel.login(email, password,context)
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .border(
-                    width = 1.dp,
+//        Button(
+//            onClick = {
+//                if(email.isEmpty() || password.isEmpty()){
+//                    Toast.makeText(context,"Enter All fields", Toast.LENGTH_SHORT).show()
+//                }else{
+//                    authViewModel.login(email, password,context)
+//                }
+//            },
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(50.dp)
+//                .border(
+//                    width = 1.dp,
+//                    color = Color.White,
+//                    shape = RoundedCornerShape(25.dp)
+//                ),
+//            colors = ButtonDefaults.buttonColors(Color(0xFF785FF3))
+//        ) {
+//            Text(
+//                text = "Log in",
+//                color = Color.White,
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 16.sp
+//            )
+//        }
+
+
+
+        if (!permissionsState.allPermissionsGranted) {
+            Button(
+                onClick = { permissionsState.launchMultiplePermissionRequest() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(25.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(Color(0xFF785FF3))
+            ) {
+                Text(
+                    text = "Grant Location Permission",
                     color = Color.White,
-                    shape = RoundedCornerShape(25.dp)
-                ),
-            colors = ButtonDefaults.buttonColors(Color(0xFF785FF3))
-        ) {
-            Text(
-                text = "Log in",
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            Button(
+                onClick = {
+                    if (email.isEmpty() || password.isEmpty()) {
+                        Toast.makeText(context, "Enter All fields", Toast.LENGTH_SHORT).show()
+                    } else {
+                        authViewModel.login(email, password, context)
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .border(
+                        width = 1.dp,
+                        color = Color.White,
+                        shape = RoundedCornerShape(25.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(Color(0xFF785FF3))
+            ) {
+                Text(
+                    text = "Log in",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+            }
         }
 
+
         // Forgot Password Link
-        Text(
-            text = "Forgot password?",
-            color = Color(0xFF917AFD),
-            modifier = Modifier
-                .clickable { /* Handle forgot password */ }
-        )
+//        Text(
+//            text = "Forgot password?",
+//            color = Color(0xFF917AFD),
+//            modifier = Modifier
+//                .clickable { /* Handle forgot password */ }
+//        )
 
         // OR Divider
         Row(

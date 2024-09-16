@@ -292,6 +292,30 @@ fun SignUpScreen(navController: NavHostController) {
                 )
             }
         }
+        Button(
+            onClick = {
+                navController.navigate(Routes.MapScreen.route){
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop=true
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+                .border(
+                    width = 1.dp,
+                    color = Color.White,
+                    shape = RoundedCornerShape(25.dp)
+                ),
+            colors = ButtonDefaults.buttonColors(Color(0xFF785FF3))
+        ) {
+            Text(
+                text = "Select Office location",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
 
         Button(
             onClick = {

@@ -79,7 +79,7 @@ dependencies {
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     kapt("androidx.hilt:hilt-compiler:1.2.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-
+    implementation("com.google.android.gms:play-services-maps:18.0.0")
     // If using Jetpack Compose
     implementation ("androidx.hilt:hilt-navigation-compose:1.2.0")
 

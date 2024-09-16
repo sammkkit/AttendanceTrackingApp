@@ -36,6 +36,7 @@ class LocationWork(
     override suspend fun doWork(): Result {
         Log.d("LocationWork", "Worker started")
         return try {
+//            ensureDateNodeExists(userId)
             // Fetch last location
             val location = withContext(Dispatchers.IO) {
                 locationProvider.getLastLocation().await()
@@ -44,7 +45,7 @@ class LocationWork(
                 // Save location to Firebase
                 val distance = calculateDistance(it.latitude, it.longitude, officeLat, officeLong)
                 Log.d("LocationWork", "111Location fetched: Lat: ${it.latitude}, Long: ${it.longitude}")
-                if (distance < 1100) {
+                if (distance < 200) {
                     punchInUser(userId, it.latitude, it.longitude)
                 } else {
                     punchOutUser(userId, it.latitude, it.longitude)
@@ -94,9 +95,23 @@ class LocationWork(
         }
     }
     private suspend fun punchInUser(userId: String, currentLat: Double, currentLong: Double) {
-        val attendanceRef = database.getReference("Users/$userId/Attendance/${getCurrentDate()}/Punches")
-        val newPunchKey = attendanceRef.push().key
+        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
 
+        // Get the last punch entry
+        val lastPunchSnapshot = attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()
+
+        // Check if there's already a punch-in without a corresponding punch-out
+        if (lastPunchSnapshot != null) {
+            val lastPunchData = lastPunchSnapshot.value as Map<*, *>
+            if (lastPunchData.containsKey("punchInTime") && !lastPunchData.containsKey("punchOutTime")) {
+                // User has already punched in without punching out, prevent new punch-in
+                Log.d("LocationWork", "Cannot punch in again without punching out first.")
+                return
+            }
+        }
+
+        // If there’s no unclosed punch-in, create a new punch-in record
+        val newPunchKey = attendanceRef.push().key
         newPunchKey?.let {
             val punchInTime = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
             val punchData = mapOf("punchInTime" to punchInTime)
@@ -109,9 +124,21 @@ class LocationWork(
             }
         }
     }
+//    private suspend fun ensureDateNodeExists(userId: String) {
+//        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance")
+//        val currentDate = getCurrentDate()
+//
+//        val dateSnapshot = attendanceRef.child(currentDate).get().await()
+//        if (!dateSnapshot.exists()) {
+//            // Node doesn't exist, create a new entry for the day
+//            val initialData = mapOf("date" to currentDate, "Punches" to "")
+//            attendanceRef.child(currentDate).setValue(initialData).await()
+//            Log.d("LocationWork", "New date node created for $currentDate")
+//        }
+//    }
 
     private suspend fun punchOutUser(userId: String, currentLat: Double, currentLong: Double) {
-        val attendanceRef = database.getReference("Users/$userId/Attendance/${getCurrentDate()}/Punches")
+        val attendanceRef = database.getReference("AttendanceRecord/$userId/Attendance/${getCurrentDate()}/Punches")
         val lastPunchKey = attendanceRef.orderByKey().limitToLast(1).get().await().children.lastOrNull()?.key
 
         lastPunchKey?.let {
