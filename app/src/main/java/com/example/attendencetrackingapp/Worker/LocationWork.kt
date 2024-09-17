@@ -1,12 +1,16 @@
 package com.example.attendencetrackingapp.Worker
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.location.Location
 import android.util.Log
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.attendencetrackingapp.LocationService.LocationProvider
+import com.example.attendencetrackingapp.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.Dispatchers
@@ -28,32 +32,41 @@ class LocationWork(
     private val locationProvider = LocationProvider(applicationContext)
     private val database = FirebaseDatabase.getInstance()
     val firebaseUser = FirebaseAuth.getInstance().currentUser
-    val userId = firebaseUser!!.uid
-    private val userRef = database.getReference("Users")
+    val userId = firebaseUser?.uid
+    private val userRef = database.getReference("users")
 
 
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result  {
+//        setForeground(createForegroundInfo())
         Log.d("LocationWork", "Worker started")
         return try {
 //            ensureDateNodeExists(userId)
             //office location
-            val (officeLat, officeLong) = fetchOfficeCoordinates(userId) ?: Pair(23.2136, 77.3997)
+            val (officeLat, officeLong) = userId?.let { fetchOfficeCoordinates(it) } ?: Pair(37.4219983, -122.084)
             // Fetch last location
             val location = withContext(Dispatchers.IO) {
                 locationProvider.getLastLocation().await()
             }
             location?.let {
-                // Save location to Firebase
                 val distance = calculateDistance(it.latitude, it.longitude, officeLat, officeLong)
                 Log.d(
                     "LocationWork",
-                    "Location fetched: Lat: ${it.latitude}, Long: ${it.longitude}"
+                    "Location of user fetched: Lat: ${it.latitude}, Long: ${it.longitude}"
                 )
+                Log.d("LocationWork", "Calculated distance: $distance meters")
                 if (distance < 200) {
-                    punchInUser(userId, it.latitude, it.longitude)
+                    Log.d("LocationWork", "User is within 200 meters of the office. Proceeding with punch-in.")
+                    if (userId != null) {
+                        punchInUser(userId, it.latitude, it.longitude)
+                    }
+                    Log.d("LocationWork", "Punch-in successful.")
                 } else {
-                    punchOutUser(userId, it.latitude, it.longitude)
+                    Log.d("LocationWork", "User is more than 200 meters from the office. Proceeding with punch-out.")
+                    if (userId != null) {
+                        punchOutUser(userId, it.latitude, it.longitude)
+                    }
+                    Log.d("LocationWork", "Punch-out successful.")
                 }
 
 //                saveLocationToFirebase(it)
@@ -70,16 +83,32 @@ class LocationWork(
             Result.failure()
         }
     }
+    private fun createForegroundInfo(): ForegroundInfo {
+        val notification = NotificationCompat.Builder(applicationContext, "location_channel_id")
+            .setContentTitle("Attendance Tracking")
+            .setContentText("Tracking your location for attendance purposes")
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOngoing(true)
+            .build()
 
+        return ForegroundInfo(
+            1,
+            notification,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION // This is the important part
+        )
+    }
     private suspend fun fetchOfficeCoordinates(userId: String): Pair<Double, Double>? {
         return try {
+            Log.d("LocationWork", "Fetching office coordinates for userId: $userId")
             val userSnapshot = userRef.child(userId).get().await()
             if (userSnapshot.exists()) {
                 val officeLat = userSnapshot.child("officeLatitude").getValue(Double::class.java) ?: 0.0
                 val officeLong = userSnapshot.child("officeLongitude").getValue(Double::class.java) ?: 0.0
+                Log.d("LocationWork", "Office coordinates fetched: Lat: $officeLat, Long: $officeLong")
                 Pair(officeLat, officeLong)
             } else {
-                Log.e("LocationWork", "User data does not exist")
+                Log.e("LocationWork", "User data does not exist in firebase")
                 null
             }
         } catch (e: Exception) {

@@ -11,6 +11,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
+import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.FirebaseDatabase
@@ -73,15 +74,14 @@ class AuthViewModel @Inject constructor(
                 }
             }
     }
-    private fun SaveUserData(user: FirebaseUser,name: String,officeLat:Double,officeLong:Double){
+    private fun SaveUserData(user: FirebaseUser,name: String,coordinates: LatLng){
         user?.let {
             val userId = user.uid
             val userEmail = user.email
             val userMap = mapOf(
                 "email" to userEmail,
                 "name" to name,
-                "officeLatitude" to officeLat,
-                "officeLongitude" to officeLong
+                "officeCoordinates" to "$coordinates"
             )
 
             // Save user details under their UID
@@ -98,8 +98,7 @@ class AuthViewModel @Inject constructor(
         email:String,
         password: String,
         context: Context,
-        officeLat:Double,
-        officeLong:Double
+        coordinates: LatLng,
     ){
         if (password.length < 6) {
             _Error.value = "Password should be at least 6 characters long."
@@ -112,7 +111,7 @@ class AuthViewModel @Inject constructor(
                     val user = auth.currentUser
                     user?.let{
                         _firebaseUser.value = it
-                        SaveUserData(it,name,officeLat,officeLong)
+                        SaveUserData(it,name,coordinates)
                     }
                 } else {
                     _Error.value = it.exception?.message

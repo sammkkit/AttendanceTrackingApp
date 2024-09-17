@@ -2,7 +2,9 @@ package com.example.attendencetrackingapp.ViewModels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkInfo
@@ -19,7 +21,13 @@ class WorkManagerViewModel @Inject constructor(
 ):ViewModel(){
     fun startWork(){
         Log.d("WorkManagerViewModel", "Starting WorkManager")
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .setRequiresBatteryNotLow(true)
+            .setRequiresCharging(false)
+            .build()
         val workRequest = PeriodicWorkRequestBuilder<LocationWork>(15, TimeUnit.MINUTES)
+            .setConstraints(constraints)
             .build()
         workManager.enqueueUniquePeriodicWork(
             "LocationWork",

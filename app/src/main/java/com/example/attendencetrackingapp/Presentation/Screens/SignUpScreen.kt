@@ -67,6 +67,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 
+data class LatLngg(val latitude: Double, val longitude: Double)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -388,8 +389,7 @@ fun SignUpScreen(
                                 email,
                                 password,
                                 context,
-                                it.latitude,
-                                it.longitude
+                                it
                             )
                         }
                     }
