@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.attendencetrackingapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.attendencetrackingapp"
@@ -53,6 +53,11 @@ android {
 }
 
 dependencies {
+
+    //biometric
+
+    implementation("androidx.biometric:biometric:1.4.0-alpha02")
+
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
 //    implementation("com.mapbox.maps:android:11.5.0")

@@ -40,11 +40,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.attendencetrackingapp.Models.ActivityLog
 import com.example.attendencetrackingapp.Presentation.Components.BottomNavigationBar
+import com.example.attendencetrackingapp.Presentation.Navigation.Routes
 import com.example.attendencetrackingapp.R
 import com.example.attendencetrackingapp.ViewModels.MainViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+
+
+
 
 @Composable
 fun HomeScreen(
@@ -53,9 +58,12 @@ fun HomeScreen(
     val mainViewModel: MainViewModel = hiltViewModel()
     val username by mainViewModel.username.observeAsState("")
     val email by mainViewModel.email.observeAsState("")
+    val activityLogs by mainViewModel.activityLogs.observeAsState(initial = emptyList())
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
             .padding(16.dp)
     ) {
         // Header Section with profile and date navigation
@@ -102,6 +110,9 @@ fun HomeScreen(
         val todayDay = today.format(formatter)
         val todayWeekDay = today.format(dayOfWeekFormatter)
 
+        val dayMonthFormatter = DateTimeFormatter.ofPattern("dd MMM")
+        val formattedDate = "${today.format(dayMonthFormatter)}, ${today.format(dayOfWeekFormatter)}"
+
         val dates = listOf(
             today.minusDays(3),
             today.minusDays(2),
@@ -109,6 +120,7 @@ fun HomeScreen(
             today,
             today.plusDays(1)
         )
+        Spacer(modifier = Modifier.height(16.dp))
         // Date Navigation Row
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -147,7 +159,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 @Composable
@@ -188,23 +200,23 @@ fun HomeScreen(
                     }
                 }
 
-                AttendanceInfoBox("Check In", "10:20 am", "On Time", Icons.Default.Check)
+                AttendanceInfoBox("Check In", "09:00 am", "On Time", Icons.Default.Check)
                 AttendanceInfoBox("Check Out", "07:00 pm", "Go Home", Icons.Default.Check)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceAround,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 AttendanceInfoBox(
                     "Break Time",
-                    "00:30 min",
-                    "Avg Time 30 min",
+                    "06:30 hours",
+                    "Total Time",
                     Icons.Default.DateRange
                 )
-                AttendanceInfoBox("Total Days", "28", "Working Days", Icons.Default.DateRange)
+                AttendanceInfoBox("Total Days", "${formattedDate}", "Date", Icons.Default.DateRange)
             }
         }
 
@@ -222,35 +234,18 @@ fun HomeScreen(
                     text = "View All",
                     color = Color(0xFF5874FC),
                     modifier = Modifier.clickable {
-
+                        navController.navigate(Routes.Report.route)
                     }
                 )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            activityLogs.take(3).forEach { log ->
+                ActivityLogItem(log)
+                Spacer(modifier = Modifier.height(8.dp))
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            @Composable
-            fun ActivityLogItem(activity: String, date: String, time: String, status: String) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column {
-                        Text(text = activity, fontWeight = FontWeight.Bold)
-                        Text(text = date, color = Color.Gray, fontSize = 12.sp)
-                    }
-
-                    Column(horizontalAlignment = Alignment.End) {
-                        Text(text = time, fontWeight = FontWeight.Bold)
-                        Text(text = status, color = Color.Gray, fontSize = 12.sp)
-                    }
-                }
-            }
-
-            ActivityLogItem("Check In", "April 17, 2023", "10:00 am", "On Time")
-            ActivityLogItem("Break In", "April 17, 2023", "12:30 am", "On Time")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -269,8 +264,23 @@ fun HomeScreen(
 }
 
 @Composable
-fun AttendanceInfoBox(s: String, s1: String, s2: String, dateRange: ImageVector) {
+fun ActivityLogItem(log: ActivityLog) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column {
+            Text(text = log.activity, fontWeight = FontWeight.Bold)
+            Text(text = log.date, color = Color.Gray, fontSize = 12.sp)
+        }
 
+        Column(horizontalAlignment = Alignment.End) {
+            Text(text = log.time, fontWeight = FontWeight.Bold)
+            Text(text = log.status, color = Color.Gray, fontSize = 12.sp)
+        }
+    }
 }
 
 @Composable

@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.attendencetrackingapp.Models.ActivityLog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -11,7 +12,10 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Locale
 import javax.inject.Inject
+
 
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel() {
@@ -19,7 +23,8 @@ class MainViewModel @Inject constructor() : ViewModel() {
     private val user = firebaseAuth.currentUser
     private val database = FirebaseDatabase.getInstance()
     private val userRef = database.getReference("users").child(user!!.uid)
-
+    private val attendanceRef =
+        database.getReference("AttendanceRecord").child(user!!.uid).child("Attendance")
     private val _username = MutableLiveData<String>()
     val username: LiveData<String> get() = _username
 
@@ -29,7 +34,15 @@ class MainViewModel @Inject constructor() : ViewModel() {
     private val _officeLocation = MutableLiveData<Pair<Double, Double>>()
     val officeLocation: LiveData<Pair<Double, Double>> get() = _officeLocation
 
+    private val _activityLogs = MutableLiveData<List<ActivityLog>>()
+    val activityLogs: LiveData<List<ActivityLog>> get() = _activityLogs
+
     init {
+        fetchUserData()
+        fetchActivityLogs()
+    }
+
+    private fun fetchUserData() {
         userRef.child("name").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 _username.value = snapshot.getValue(String::class.java) ?: ""
@@ -63,6 +76,57 @@ class MainViewModel @Inject constructor() : ViewModel() {
         })
     }
 
+    private fun fetchActivityLogs() {
+        attendanceRef.addValueEventListener(
+            object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    viewModelScope.launch {
+                        val logs = mutableListOf<ActivityLog>()
+                        for (dateSnapshot in snapshot.children) {
+                            val date = dateSnapshot.key ?: continue
+                            val punchesSnapshot = dateSnapshot.child("Punches")
+                            val dayPunches = mutableListOf<Pair<String, String?>>()
+                            for (punchSnapshot in punchesSnapshot.children) {
+                                val punchInTime =
+                                    punchSnapshot.child("punchInTime").getValue(String::class.java)
+                                        ?: continue
+                                val punchOutTime =
+                                    punchSnapshot.child("punchOutTime").getValue(String::class.java)
+                                dayPunches.add(Pair(punchInTime, punchOutTime))
+                            }
+                            dayPunches.sortBy { it.first }
+
+                            for (punch in dayPunches) {
+                                logs.add(ActivityLog(
+                                    activity = "Check In",
+                                    date = formatDate(date),
+                                    time = formatTime(punch.first),
+                                    status = determineStatus(punch.first)
+                                ))
+
+                                if (punch.second != null) {
+                                    logs.add(ActivityLog(
+                                        activity = "Check Out",
+                                        date = formatDate(date),
+                                        time = formatTime(punch.second!!),
+                                        status = determineStatus(punch.second!!)
+                                    ))
+                                }
+                            }
+
+                        }
+                        _activityLogs.value = logs.sortedByDescending { it.date  }
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
+
+            }
+        )
+    }
+
     private fun parseCoordinates(coordinatesString: String): Pair<Double, Double> {
         val latitude: Double
         val longitude: Double
@@ -79,5 +143,25 @@ class MainViewModel @Inject constructor() : ViewModel() {
         } catch (e: Exception) {
             Pair(0.0, 0.0)
         }
+    }
+
+    private fun formatDate(dateString: String): String {
+        val inputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
+        val date = inputFormat.parse(dateString)
+        return outputFormat.format(date!!)
+    }
+
+    private fun formatTime(timeString: String): String {
+        val inputFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("h:mm a", Locale.getDefault())
+        val time = inputFormat.parse(timeString)
+        return outputFormat.format(time!!)
+    }
+
+    private fun determineStatus(time: String): String {
+        // Implement your logic to determine status based on time
+        // For example, you could compare it with a predefined schedule
+        return "On Time" // Placeholder
     }
 }

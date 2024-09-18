@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.attendencetrackingapp.Presentation.Screens.LoginScreen
+import com.example.attendencetrackingapp.Presentation.Screens.ReportScreen
 import com.example.attendencetrackingapp.Presentation.Screens.SignUpScreen
 import com.example.attendencetrackingapp.Presentation.Screens.Splash
 
@@ -26,9 +27,7 @@ fun NavGraph(navController: NavHostController) {
             route = Routes.Signup.route,
 
         ) {
-             SignUpScreen(
-                navController
-            )
+             ReportScreen(navController = navController)
         }
 //        composable(Routes.MapScreen.route){
 //            MapScreen(navController = navController)

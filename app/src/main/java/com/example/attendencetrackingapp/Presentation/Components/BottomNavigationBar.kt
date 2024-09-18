@@ -45,7 +45,7 @@ fun BottomNavigationBar(
         containerColor = Color.White,
 //         contentColor = Color.Red
     ){
-        val mycolor = Color(0xFF684DEC)
+        val mycolor = Color(0xFF5874FC)
         items.forEach{item->
             NavigationBarItem(
                 icon = {

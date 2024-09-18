@@ -1,9 +1,16 @@
 package com.example.attendencetrackingapp.Presentation.Navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,17 +37,39 @@ fun BottomNavigationScreen(
                 startDestination = Routes.Home.route
             ) {
                 composable(Routes.Home.route) {
-                    HomeScreen(navController=navController)
+                    AnimatedScreenTransition {
+                        HomeScreen(navController=BottomNavController)
+                    }
                 }
                 composable(Routes.Profile.route) {
-                    ProfileScreen(navController = navController)
+                    AnimatedScreenTransition {
+
+                        ProfileScreen(navController = BottomNavController)
+                    }
                 }
                 composable(Routes.Report.route) {
-                    ReportScreen(navController = navController)
+                    AnimatedScreenTransition {
+
+                        ReportScreen(navController = BottomNavController)
+                    }
                 }
             }
 
         }
 
+    }
+}
+@Composable
+fun AnimatedScreenTransition(content: @Composable () -> Unit) {
+    val transitionState = remember {
+        MutableTransitionState(false).apply { targetState = true }
+    }
+
+    AnimatedVisibility(
+        visibleState = transitionState,
+        enter = slideInHorizontally(initialOffsetX = { 1000 }) ,
+        exit = slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut()
+    ) {
+        content()
     }
 }
