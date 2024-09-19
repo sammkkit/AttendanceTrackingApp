@@ -1,42 +1,46 @@
 package com.example.attendencetrackingapp.Worker
-//
-//// BiometricAuth.kt
-//import android.content.Context
-//import android.hardware.biometrics.BiometricManager
-//import android.os.Build
-//import androidx.biometric.BiometricPrompt
-//import androidx.compose.ui.platform.LocalContext
-//import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.viewModelScope
-//import kotlinx.coroutines.launch
-//
-//class BiometricAuth(private val context: Context) {
-//    private val biometricManager = BiometricManager.from(context)
-//
-//    fun authenticate(onSuccess: () -> Unit, onError: () -> Unit) {
-//        if (biometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS) {
-//            val biometricPrompt = BiometricPrompt(context as AppCompatActivity, executor, callback)
-//            val promptInfo = BiometricPrompt.PromptInfo.Builder()
-//                .setTitle("Authenticate")
-//                .setDescription("Verify your identity")
-//                .setNegativeButtonText("Cancel")
-//                .build()
-//            biometricPrompt.authenticate(promptInfo)
-//        } else {
-//            onError()
-//        }
-//
-//        val executor = Executor { command -> command.run() }
-//        val callback = object : BiometricPrompt.AuthenticationCallback() {
-//            override fun onAuthenticationError(errorCode: Int, errString: CharSequence?) {
-//                super.onAuthenticationError(errorCode, errString)
-//                onError()
-//            }
-//
-//            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult?) {
-//                super.onAuthenticationSucceeded(result)
-//                onSuccess()
-//            }
-//        }
-//    }
-//}
+
+import android.content.Context
+import androidx.activity.ComponentActivity
+import androidx.biometric.BiometricPrompt
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import java.util.concurrent.Executor
+
+class BiometricHelper(
+    private val fragment: Fragment,
+    private val onAuthenticationSuccess: () -> Unit
+) {
+
+    private val executor: Executor = ContextCompat.getMainExecutor(fragment.requireContext())
+    private val biometricPrompt: BiometricPrompt = BiometricPrompt(
+        fragment,
+        executor,
+        object : BiometricPrompt.AuthenticationCallback() {
+            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                super.onAuthenticationError(errorCode, errString)
+                // Handle the error, for example, show a Toast
+            }
+
+            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                super.onAuthenticationSucceeded(result)
+                onAuthenticationSuccess()
+            }
+
+            override fun onAuthenticationFailed() {
+                super.onAuthenticationFailed()
+                // Handle authentication failure, for example, show a Toast
+            }
+        }
+    )
+
+    fun authenticate() {
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Biometric Login")
+            .setSubtitle("Log in using your biometric credential")
+            .setNegativeButtonText("Use account password")
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
+    }
+}

@@ -173,6 +173,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
+                            .size(130.dp,130.dp)
                             .background(Color(0xFFF3F0FF))
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -252,13 +253,13 @@ fun HomeScreen(
 
         // Swipe to Check In Section
         Button(
-            onClick = { /* Handle Swipe Action */ },
+            onClick = {  },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5874FC))
         ) {
-            Text(text = "Swipe to Check In", color = Color.White)
+            Text(text = "Click to Check In", color = Color.White)
         }
     }
 }
@@ -294,6 +295,7 @@ fun AttendanceInfoBox(
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
+            .size(130.dp,130.dp)
             .background(Color(0xFFF3F0FF))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -321,9 +323,5 @@ fun AttendanceInfoBox(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun prererfwefwsf() {
-    HomeScreen(rememberNavController())
-}
+
 

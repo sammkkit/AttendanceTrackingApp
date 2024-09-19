@@ -56,7 +56,8 @@ dependencies {
 
     //biometric
 
-    implementation("androidx.biometric:biometric:1.4.0-alpha02")
+    implementation("androidx.biometric:biometric:1.2.0-alpha04" )// Ensure it's the latest stable version
+
 
 
     implementation("androidx.datastore:datastore-preferences:1.1.1")
