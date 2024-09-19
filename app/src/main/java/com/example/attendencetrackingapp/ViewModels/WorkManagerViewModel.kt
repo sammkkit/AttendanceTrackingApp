@@ -22,9 +22,7 @@ class WorkManagerViewModel @Inject constructor(
     fun startWork(){
         Log.d("WorkManagerViewModel", "Starting WorkManager")
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .setRequiresBatteryNotLow(true)
-            .setRequiresCharging(false)
+            .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
         val workRequest = PeriodicWorkRequestBuilder<LocationWork>(15, TimeUnit.MINUTES)
             .setConstraints(constraints)
@@ -33,9 +31,21 @@ class WorkManagerViewModel @Inject constructor(
             "LocationWork",
             ExistingPeriodicWorkPolicy.KEEP,
             workRequest
+
         )
         observeWorkStatus(workRequest.id)
     }
+
+    fun startOneTimeWork() {
+        Log.d("WorkManagerViewModel", "Starting One-Time WorkManager")
+        val oneTimeWorkRequest = OneTimeWorkRequestBuilder<LocationWork>()
+            .build()
+
+        workManager.enqueue(oneTimeWorkRequest)
+
+        observeWorkStatus(oneTimeWorkRequest.id)
+    }
+
     private fun observeWorkStatus(workRequestId: UUID) {
         workManager.getWorkInfoByIdLiveData(workRequestId)
             .observeForever { workInfo ->

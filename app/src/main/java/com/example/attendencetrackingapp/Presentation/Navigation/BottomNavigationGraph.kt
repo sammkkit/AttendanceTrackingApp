@@ -44,7 +44,7 @@ fun BottomNavigationScreen(
                 composable(Routes.Profile.route) {
                     AnimatedScreenTransition {
 
-                        ProfileScreen(navController = BottomNavController)
+                        ProfileScreen(navController = navController)
                     }
                 }
                 composable(Routes.Report.route) {

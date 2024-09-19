@@ -38,10 +38,8 @@ class LocationWork(
 
 
     override suspend fun doWork(): Result  {
-//        setForeground(createForegroundInfo())
         Log.d("LocationWork", "Worker started")
         return try {
-//            ensureDateNodeExists(userId)
             //office location
             val (officeLat, officeLong) = userId?.let { fetchOfficeCoordinates(it) } ?: Pair(37.4219983, -122.084)
             // Fetch last location
@@ -83,39 +81,45 @@ class LocationWork(
             Result.failure()
         }
     }
-    private fun createForegroundInfo(): ForegroundInfo {
-        val notification = NotificationCompat.Builder(applicationContext, "location_channel_id")
-            .setContentTitle("Attendance Tracking")
-            .setContentText("Tracking your location for attendance purposes")
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Your app icon
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setOngoing(true)
-            .build()
 
-        return ForegroundInfo(
-            1,
-            notification,
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION // This is the important part
-        )
-    }
     private suspend fun fetchOfficeCoordinates(userId: String): Pair<Double, Double>? {
         return try {
             Log.d("LocationWork", "Fetching office coordinates for userId: $userId")
-            val userSnapshot = userRef.child(userId).get().await()
-            if (userSnapshot.exists()) {
-                val officeLat = userSnapshot.child("officeLatitude").getValue(Double::class.java) ?: 0.0
-                val officeLong = userSnapshot.child("officeLongitude").getValue(Double::class.java) ?: 0.0
-                Log.d("LocationWork", "Office coordinates fetched: Lat: $officeLat, Long: $officeLong")
-                Pair(officeLat, officeLong)
-            } else {
-                Log.e("LocationWork", "User data does not exist in firebase")
-                null
-            }
+
+            // Fetch officeCoordinates as a string
+            val userSnapshot = userRef.child(userId).child("officeCoordinates").get().await()
+
+            // Parse coordinates from the string
+            val coordinatesString = userSnapshot.getValue(String::class.java) ?: ""
+            val (latitude, longitude) = parseCoordinates(coordinatesString)
+
+            Log.d("LocationWork", "Office coordinates fetched: Lat: $latitude, Long: $longitude")
+            Pair(latitude, longitude)
+
         } catch (e: Exception) {
-            Log.e("LocationWork", "Error fetching user data: ${e.message}")
+            Log.e("LocationWork", "Error fetching office coordinates: ${e.message}")
             null
         }
     }
+
+    private fun parseCoordinates(coordinatesString: String): Pair<Double, Double> {
+        val latitude: Double
+        val longitude: Double
+        return try {
+            val regex = Regex("""lat/lng: \(([^,]+),([^)]*)\)""")
+            val matchResult = regex.find(coordinatesString)
+            if (matchResult != null) {
+                latitude = matchResult.groupValues[1].toDouble()
+                longitude = matchResult.groupValues[2].toDouble()
+                Pair(latitude, longitude)
+            } else {
+                Pair(0.0, 0.0)
+            }
+        } catch (e: Exception) {
+            Pair(0.0, 0.0)
+        }
+    }
+
     private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
         val R = 6371e3 // Earth radius in meters
         val φ1 = lat1 * Math.PI / 180

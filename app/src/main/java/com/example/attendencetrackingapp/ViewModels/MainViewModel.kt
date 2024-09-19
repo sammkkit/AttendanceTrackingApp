@@ -38,8 +38,10 @@ class MainViewModel @Inject constructor() : ViewModel() {
     val activityLogs: LiveData<List<ActivityLog>> get() = _activityLogs
 
     init {
-        fetchUserData()
-        fetchActivityLogs()
+        if (user!= null){
+            fetchUserData()
+            fetchActivityLogs()
+        }
     }
 
     private fun fetchUserData() {

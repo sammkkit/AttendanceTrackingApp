@@ -23,12 +23,10 @@ fun NavGraph(navController: NavHostController) {
         composable(Routes.Login.route) {
             LoginScreen(navController)
         }
-        composable(
-            route = Routes.Signup.route,
-
-        ) {
-             ReportScreen(navController = navController)
+        composable(Routes.Signup.route){
+            SignUpScreen(navController = navController)
         }
+
 //        composable(Routes.MapScreen.route){
 //            MapScreen(navController = navController)
 //        }

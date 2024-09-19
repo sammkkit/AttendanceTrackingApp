@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
@@ -27,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.attendencetrackingapp.Presentation.Navigation.Routes
 import com.example.attendencetrackingapp.ViewModels.AuthViewModel
 import com.example.attendencetrackingapp.ViewModels.MainViewModel
 
@@ -39,6 +41,7 @@ fun ProfileScreen(
 
     val username by mainViewModel.username.observeAsState("")
     val email by mainViewModel.email.observeAsState("")
+    val officeLocation by mainViewModel.officeLocation.observeAsState(initial = "")
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -129,6 +132,23 @@ fun ProfileScreen(
                 Text(text = "Privacy Policy", modifier = Modifier.weight(1f))
             }
             Divider()
+            Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(text =" Office - ${
+                officeLocation
+            }" , modifier = Modifier.weight(1f))
+        }
+            Divider()
         }
 
         Spacer(modifier = Modifier.weight(1f))
@@ -137,7 +157,10 @@ fun ProfileScreen(
         Button(
             onClick = {
                 authViewModel.logout()
-                navController.navigate("login") // Navigate to login on log out
+                navController.navigate(Routes.Login.route){
+                    popUpTo(navController.graph.startDestinationId)
+                    launchSingleTop = true
+                } // Navigate to login on log out
             },
             modifier = Modifier
                 .fillMaxWidth()

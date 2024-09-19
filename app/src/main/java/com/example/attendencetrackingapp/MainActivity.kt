@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.attendencetrackingapp.Presentation.Navigation.NavGraph
 import com.example.attendencetrackingapp.ViewModels.AuthViewModel
@@ -36,70 +37,75 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        workManagerViewModel.startOneTimeWork()
         setContent {
             AttendenceTrackingAppTheme {
-                val firebaseUser = authViewModel.firebaseUser.collectAsState().value
-                val context = LocalContext.current
-                var hasLocationPermission by remember { mutableStateOf(false) }
-                var hasBackgroundLocationPermission by remember { mutableStateOf(false) }
-
-                // Permission launcher to request location and background location permissions
-                val locationPermissionLauncher = rememberLauncherForActivityResult(
-                    contract = ActivityResultContracts.RequestMultiplePermissions()
-                ) { permissions ->
-                    hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
-                    hasBackgroundLocationPermission = permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
-                }
-
-                // Function to request location permissions
-                fun requestLocationPermissions() {
-                    val permissionsToRequest = mutableListOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-
-                    // Background location permission is only needed for Android 11+
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        permissionsToRequest.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                    }
-
-                    locationPermissionLauncher.launch(permissionsToRequest.toTypedArray())
-                }
-
-                LaunchedEffect(firebaseUser) {
-                    if (firebaseUser != null) {
-                        // Check if location permissions are granted
-                        if (ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.ACCESS_FINE_LOCATION
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
-                            hasLocationPermission = true
-                        } else {
-                            // Request location permission
-                            requestLocationPermissions()
-                        }
-                    }
-                }
-
-                LaunchedEffect(hasLocationPermission, hasBackgroundLocationPermission) {
-                    if (firebaseUser != null && hasLocationPermission) {
-                        // Start the WorkManager if permissions are granted
-                        workManagerViewModel.startWork()
-                        // Request battery optimization exemption
-                        requestBatteryOptimizationExemption()
-                    } else if (!hasLocationPermission) {
-                        requestLocationPermissions()
-                    }
-                }
-
-                val navController = rememberNavController()
-                NavGraph(navController = navController)
+                MyScreen(
+                    authViewModel = authViewModel,
+                    workManagerViewModel = workManagerViewModel
+                )
             }
         }
     }
 
-    // Request battery optimization exemption
+    @Composable
+    fun MyScreen(
+        authViewModel: AuthViewModel,
+        workManagerViewModel: WorkManagerViewModel
+    ) {
+        val firebaseUser by authViewModel.firebaseUser.collectAsState()
+        val context = LocalContext.current
+        var hasLocationPermission by remember { mutableStateOf(false) }
+        var hasBackgroundLocationPermission by remember { mutableStateOf(false) }
+
+        val locationPermissionLauncher = rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            hasLocationPermission = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            hasBackgroundLocationPermission = permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
+        }
+
+        // Request permissions
+        fun requestLocationPermissions() {
+            val permissionsToRequest = mutableListOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                permissionsToRequest.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            }
+
+            locationPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+        }
+
+        LaunchedEffect(firebaseUser) {
+            if (firebaseUser != null) {
+                if (ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    hasLocationPermission = true
+                } else {
+                    requestLocationPermissions()
+                }
+            }
+        }
+
+        LaunchedEffect(hasLocationPermission, hasBackgroundLocationPermission) {
+            if (firebaseUser != null && hasLocationPermission) {
+                workManagerViewModel.startWork()
+                requestBatteryOptimizationExemption()
+            } else if (!hasLocationPermission) {
+                requestLocationPermissions()
+            }
+        }
+
+        val navController = rememberNavController()
+        NavGraph(navController = navController)
+    }
+
     private fun requestBatteryOptimizationExemption() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val packageName = packageName
@@ -112,3 +118,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
