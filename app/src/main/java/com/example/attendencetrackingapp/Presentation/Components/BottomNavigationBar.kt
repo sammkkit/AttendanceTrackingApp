@@ -16,16 +16,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.attendencetrackingapp.Presentation.Navigation.Routes
+import com.example.attendencetrackingapp.R
 
-sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
+sealed class BottomNavItem(val route: String, val icon: Any, val label: String) {
     object Home : BottomNavItem(Routes.Home.route, Icons.Default.Home, "Home")
-    object Report : BottomNavItem(Routes.Report.route, Icons.Default.ShoppingCart, "Report")
+    object Report : BottomNavItem(Routes.Report.route, R.drawable.analytics_chart, "Report")
     object Profile : BottomNavItem(Routes.Profile.route, Icons.Default.Person, "Profile")
 }
 
@@ -49,23 +51,43 @@ fun BottomNavigationBar(
         items.forEach{item->
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.label,
-                        modifier = Modifier
-                            .size(
-                                if(currentRoute==item.route){
+                    if(item.icon is ImageVector){
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            modifier = Modifier.size(
+                                if (currentRoute == item.route) {
                                     34.dp
-                                }else{
+                                } else {
                                     30.dp
                                 }
-                            )
-                        , tint =  if(currentRoute==item.route){
-                            mycolor
-                        }else{
-                            Color.DarkGray
-                        }
-                    )
+                            ),
+                            tint = if (currentRoute == item.route) {
+                                Color(0xFF5874FC)
+                            } else {
+                                Color.DarkGray
+                            }
+
+                        )
+                    }else {
+                        Icon(
+                            painter = painterResource(id = item.icon as Int),
+                            contentDescription = item.label,
+                            modifier = Modifier.size(
+                                if (currentRoute == item.route) {
+                                    34.dp
+                                } else {
+                                    30.dp
+                                }
+                            ),
+                            tint = if (currentRoute == item.route) {
+                                Color(0xFF5874FC)
+                            } else {
+                                Color.DarkGray
+                            }
+                        )
+                    }
+
                 },
                 selected = currentRoute == item.route,
                 onClick = {

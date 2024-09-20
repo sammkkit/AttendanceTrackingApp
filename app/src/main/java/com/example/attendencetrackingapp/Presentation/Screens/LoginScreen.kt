@@ -117,7 +117,7 @@ fun LoginScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = "Sign up to your GeoLog account to ease your attendance tracking!!",
+                text = "Sign In to your GeoLog account to ease your attendance tracking!!",
                 color = Color(0xFF7D7F88)
             )
         }

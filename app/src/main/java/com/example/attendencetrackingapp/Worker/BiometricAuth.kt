@@ -1,46 +1,68 @@
 package com.example.attendencetrackingapp.Worker
 
-import android.content.Context
-import androidx.activity.ComponentActivity
-import androidx.biometric.BiometricPrompt
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
-import java.util.concurrent.Executor
-
-class BiometricHelper(
-    private val fragment: Fragment,
-    private val onAuthenticationSuccess: () -> Unit
-) {
-
-    private val executor: Executor = ContextCompat.getMainExecutor(fragment.requireContext())
-    private val biometricPrompt: BiometricPrompt = BiometricPrompt(
-        fragment,
-        executor,
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                super.onAuthenticationError(errorCode, errString)
-                // Handle the error, for example, show a Toast
-            }
-
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                super.onAuthenticationSucceeded(result)
-                onAuthenticationSuccess()
-            }
-
-            override fun onAuthenticationFailed() {
-                super.onAuthenticationFailed()
-                // Handle authentication failure, for example, show a Toast
-            }
-        }
-    )
-
-    fun authenticate() {
-        val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Biometric Login")
-            .setSubtitle("Log in using your biometric credential")
-            .setNegativeButtonText("Use account password")
-            .build()
-
-        biometricPrompt.authenticate(promptInfo)
-    }
-}
+//import android.app.Notification
+//import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_STRONG
+//import androidx.biometric.BiometricManager.Authenticators.BIOMETRIC_WEAK
+//import androidx.biometric.BiometricPrompt
+//import androidx.compose.runtime.Composable
+//import androidx.compose.runtime.LaunchedEffect
+//import androidx.compose.ui.platform.LocalContext
+//import androidx.core.content.ContextCompat
+//import androidx.fragment.app.FragmentActivity
+//@Composable
+//fun BiometricPrompt(show: Boolean, onDismiss: () -> Unit) {
+//    if (!show) {
+//        return
+//    }
+//
+//    val context = LocalContext.current
+//    val dispatch = rememberTypedDispatcher<Notification.Action>()
+//
+//    LaunchedEffect(key1 = context) {
+//        val fragmentActivity = context as? FragmentActivity ?: return@LaunchedEffect
+//        val executor = ContextCompat.getMainExecutor(fragmentActivity)
+//        val biometricPrompt = BiometricPrompt(
+//            fragmentActivity,
+//            executor,
+//            object : BiometricPrompt.AuthenticationCallback() {
+//                override fun onAuthenticationError(
+//                    errorCode: Int,
+//                    errString: CharSequence
+//                ) {
+//                    super.onAuthenticationError(errorCode, errString)
+//                    onDismiss()
+//                    dispatch(
+//                        ToastActionStr(
+//                            context.getString(
+//                                R.string.authentication_error,
+//                                errString
+//                            )
+//                        )
+//                    )
+//                }
+//
+//                override fun onAuthenticationSucceeded(
+//                    result: BiometricPrompt.AuthenticationResult
+//                ) {
+//                    super.onAuthenticationSucceeded(result)
+//                    dispatch(NavigationAction(HomeState(), true))
+//                }
+//
+//                override fun onAuthenticationFailed() {
+//                    super.onAuthenticationFailed()
+//                    onDismiss()
+//                    dispatch(ToastAction(R.string.authentication_failed))
+//                }
+//            }
+//        )
+//
+//        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+//            .setTitle(context.getString(R.string.app_name))
+//            .setSubtitle(context.getString(R.string.login_to_enter_keypass))
+//            .setAllowedAuthenticators(BIOMETRIC_STRONG or BIOMETRIC_WEAK)
+//            .setNegativeButtonText(context.getText(R.string.cancel))
+//            .build()
+//
+//        biometricPrompt.authenticate(promptInfo)
+//    }
+//}

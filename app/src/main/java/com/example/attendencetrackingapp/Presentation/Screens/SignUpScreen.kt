@@ -141,7 +141,7 @@ fun SignUpScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             Text(
-                text = "Sign up to your Nest account to explore your place to live!!",
+                text = "Sign up to your GeoLog account to make attendance easy",
                 color = Color(0xFF7D7F88)
             )
         }

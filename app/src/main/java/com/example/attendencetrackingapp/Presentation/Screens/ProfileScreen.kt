@@ -1,5 +1,9 @@
 package com.example.attendencetrackingapp.Presentation.Screens
 
+import android.content.Context
+import android.location.Address
+import android.location.Geocoder
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -23,14 +27,51 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.attendencetrackingapp.Presentation.Navigation.Routes
+import com.example.attendencetrackingapp.R
 import com.example.attendencetrackingapp.ViewModels.AuthViewModel
 import com.example.attendencetrackingapp.ViewModels.MainViewModel
+import java.util.Locale
+
+
+fun parseCoordinates(coordinates: String): Pair<Double, Double> {
+    return if (coordinates.isNotBlank()) {
+        val parts = coordinates.split(",")
+        if (parts.size == 2) {
+            val latitude = parts[0].toDoubleOrNull() ?: 0.0
+            val longitude = parts[1].toDoubleOrNull() ?: 0.0
+            Pair(latitude, longitude)
+        } else {
+            Pair(0.0, 0.0) // Default values or error handling
+        }
+    } else {
+        Pair(0.0, 0.0) // Default values or error handling
+    }
+}
+
+fun getAddressFromCoordinates(context: Context, latitude: Double, longitude: Double): String {
+    val geocoder = Geocoder(context, Locale.getDefault())
+    val addresses: List<Address>?
+
+    return try {
+        addresses = geocoder.getFromLocation(latitude, longitude, 1)
+        if (addresses!!.isNotEmpty()) {
+            val address: Address = addresses[0]
+            // Construct the address string from the Address object
+            "${address.getAddressLine(0)}, ${address.locality}, ${address.countryName}"
+        } else {
+            "Address not found"
+        }
+    } catch (e: Exception) {
+        "Error: ${e.message}"
+    }
+}
 
 @Composable
 fun ProfileScreen(
@@ -39,9 +80,11 @@ fun ProfileScreen(
     mainViewModel: MainViewModel = hiltViewModel()
 ) {
 
+
     val username by mainViewModel.username.observeAsState("")
     val email by mainViewModel.email.observeAsState("")
     val officeLocation by mainViewModel.officeLocation.observeAsState(initial = "")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,15 +97,12 @@ fun ProfileScreen(
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = Icons.Default.Person,
+            Image(
+                painter = painterResource(id = R.drawable.crypticbytes),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .border(2.dp, Color.Gray, CircleShape),
-                tint = Color.Gray
+                modifier = Modifier.size(90.dp)
             )
+
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = "${username}")
             Text(text = "${email}", color = Color.Gray)
@@ -133,21 +173,23 @@ fun ProfileScreen(
             }
             Divider()
             Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            Text(text =" Office - ${
-                officeLocation
-            }" , modifier = Modifier.weight(1f))
-        }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp, horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+                Text(
+                    text = " Office - ${
+                        officeLocation
+                    }", modifier = Modifier.weight(1f)
+                )
+            }
             Divider()
         }
 
@@ -157,7 +199,7 @@ fun ProfileScreen(
         Button(
             onClick = {
                 authViewModel.logout()
-                navController.navigate(Routes.Login.route){
+                navController.navigate(Routes.Login.route) {
                     popUpTo(navController.graph.startDestinationId)
                     launchSingleTop = true
                 } // Navigate to login on log out
@@ -178,9 +220,10 @@ fun ProfileScreen(
         }
     }
 }
+
 @Preview
 @Composable
-fun pr(){
+fun pr() {
     ProfileScreen(navController = rememberNavController())
 }
 //        }

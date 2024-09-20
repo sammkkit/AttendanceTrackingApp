@@ -1,5 +1,10 @@
 package com.example.attendencetrackingapp.Presentation.Screens
 
+import android.content.Context
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.biometric.BiometricManager
+import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
@@ -37,6 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -47,8 +56,7 @@ import com.example.attendencetrackingapp.R
 import com.example.attendencetrackingapp.ViewModels.MainViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-
-
+import java.util.concurrent.Executor
 
 
 @Composable
@@ -73,14 +81,7 @@ fun HomeScreen(
         ) {
             // Profile Info
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile Picture",
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(Color.Transparent)
-                )
+                Image(painter = painterResource(id = R.drawable.crypticbytes), contentDescription =null, modifier = Modifier.size(50.dp) )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
@@ -173,7 +174,7 @@ fun HomeScreen(
                     Column(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .size(130.dp,130.dp)
+                            .size(130.dp, 130.dp)
                             .background(Color(0xFFF3F0FF))
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -240,7 +241,7 @@ fun HomeScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            activityLogs.take(3).forEach { log ->
+            activityLogs.take(2).forEach { log ->
                 ActivityLogItem(log)
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -249,20 +250,28 @@ fun HomeScreen(
 
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         // Swipe to Check In Section
         Button(
-            onClick = {  },
+            onClick = {
+
+            },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5874FC))
+                .fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(Color(0xFF5874FC))
         ) {
-            Text(text = "Click to Check In", color = Color.White)
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = "Check In", color = Color.White)
         }
     }
 }
+
+// Retrieve a BiometricPrompt instance with a predefined callback
 
 @Composable
 fun ActivityLogItem(log: ActivityLog) {
@@ -295,7 +304,7 @@ fun AttendanceInfoBox(
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .size(130.dp,130.dp)
+            .size(130.dp, 130.dp)
             .background(Color(0xFFF3F0FF))
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
