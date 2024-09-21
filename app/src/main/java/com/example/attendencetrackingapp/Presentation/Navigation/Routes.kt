@@ -8,5 +8,5 @@ sealed class Routes(val route:String) {
     object BottomNav: Routes("bottom_nav")
     object Login: Routes("login")
     object Signup: Routes("signup")
-    object MapScreen : Routes("map_screen")
+    object Privacy : Routes("privacy_screen")
 }

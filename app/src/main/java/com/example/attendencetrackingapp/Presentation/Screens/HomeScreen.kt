@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -241,9 +242,17 @@ fun HomeScreen(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
-            activityLogs.take(2).forEach { log ->
-                ActivityLogItem(log)
-                Spacer(modifier = Modifier.height(8.dp))
+            if (activityLogs.isEmpty()) {
+                Text(
+                    text = "No Data Available",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black
+                )
+            } else {
+                activityLogs.take(2).forEach { log ->
+                    ActivityLogItem(log)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -251,23 +260,23 @@ fun HomeScreen(
         }
 
         // Swipe to Check In Section
-        Button(
-            onClick = {
-
-            },
-            modifier = Modifier
-                .fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(Color(0xFF5874FC))
-        ) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(text = "Check In", color = Color.White)
-        }
+//        Button(
+//            onClick = {
+//
+//            },
+//            modifier = Modifier
+//                .fillMaxWidth(),
+//            colors = ButtonDefaults.buttonColors(Color(0xFF5874FC))
+//        ) {
+//            Icon(
+//                imageVector = Icons.Default.Check,
+//                contentDescription = null,
+//                tint = Color.White,
+//                modifier = Modifier.size(24.dp)
+//            )
+//            Spacer(modifier = Modifier.width(8.dp))
+//            Text(text = "Check In", color = Color.White)
+//        }
     }
 }
 

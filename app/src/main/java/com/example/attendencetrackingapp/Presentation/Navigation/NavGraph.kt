@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.attendencetrackingapp.Presentation.Screens.LoginScreen
+import com.example.attendencetrackingapp.Presentation.Screens.PrivacyPolicyScreen
 import com.example.attendencetrackingapp.Presentation.Screens.ReportScreen
 import com.example.attendencetrackingapp.Presentation.Screens.SignUpScreen
 import com.example.attendencetrackingapp.Presentation.Screens.Splash
@@ -25,6 +26,12 @@ fun NavGraph(navController: NavHostController) {
         }
         composable(Routes.Signup.route){
             SignUpScreen(navController = navController)
+        }
+        composable(Routes.Privacy.route){
+            PrivacyPolicyScreen(onBackClick = { navController.popBackStack() })
+        }
+        composable(Routes.Report.route){
+            ReportScreen(navController = navController)
         }
 
 //        composable(Routes.MapScreen.route){
